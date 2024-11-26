@@ -1,9 +1,11 @@
-﻿#define _CRT_SECURE_NO_WARNINGS
+﻿
+#define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <windows.h>
 #include <vector>
+#include <queue>
 #include <iostream>
 #include <chrono>  // Для измерения времени
 
@@ -34,6 +36,29 @@ void printAdjacencyList(const std::vector<std::vector<int>>& adjList, int N) {
     }
 }
 
+// Процедура поиска кратчайших расстояний от вершины с использованием BFS
+void BFS(int startVertex, const std::vector<std::vector<int>>& adjList, std::vector<int>& DIST) {
+    std::queue<int> q;
+    q.push(startVertex);
+    DIST[startVertex] = 0;  // Расстояние до начальной вершины всегда 0
+
+    while (!q.empty()) {
+        int current = q.front();
+        q.pop();
+
+        // Обрабатываем всех соседей текущей вершины
+        for (int neighbor : adjList[current]) {
+            if (DIST[neighbor] == -1) { // Если вершина ещё не была посещена
+                DIST[neighbor] = DIST[current] + 1;
+                q.push(neighbor);
+            }
+        }
+    }
+}
+
+
+
+
 // Процедура поиска расстояний от вершины с использованием DFS
 void DFS(int node, const std::vector<std::vector<int>>& adjList, std::vector<int>& DIST, int currentDist, std::vector<bool>& visited) {
     // Если текущий путь короче, чем ранее найденный, обновляем расстояние
@@ -52,6 +77,7 @@ void DFS(int node, const std::vector<std::vector<int>>& adjList, std::vector<int
 
     visited[node] = false; // Размечаем вершину как не посещенную после обработки
 }
+
 
 int main() {
     SetConsoleCP(1251);
@@ -75,14 +101,34 @@ int main() {
     printf("Введите исходную вершину для поиска расстояний: ");
     scanf("%d", &startVertex);
 
+    // Вектор для хранения расстояний для BFS
+    std::vector<int> DIST_BFS(N, -1); // Инициализация всех расстояний как -1
+
+    // Измерение времени для BFS
+    auto startTime = std::chrono::high_resolution_clock::now();
+    BFS(startVertex, adjList, DIST_BFS);
+    auto endTime = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> bfsDuration = endTime - startTime;
+
+    // Выводим результат BFS
+    printf("DIST (BFS) = [");
+    for (int i = 0; i < N; i++) {
+        printf("%d", DIST_BFS[i]);
+        if (i < N - 1) {
+            printf(", ");
+        }
+    }
+    printf("]\n");
+    printf("Время выполнения BFS: %f секунд\n", bfsDuration.count());
+
     // Вектор для хранения расстояний для DFS
     std::vector<int> DIST_DFS(N, -1); // Инициализация всех расстояний как -1
     std::vector<bool> visited(N, false); // Вектор для отслеживания посещённых вершин
 
     // Измерение времени для DFS
-    auto startTime = std::chrono::high_resolution_clock::now();
+    startTime = std::chrono::high_resolution_clock::now();
     DFS(startVertex, adjList, DIST_DFS, 0, visited);
-    auto endTime = std::chrono::high_resolution_clock::now();
+    endTime = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> dfsDuration = endTime - startTime;
 
     // Выводим результат DFS
